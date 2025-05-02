@@ -1,95 +1,109 @@
-
-import { useState, useCallback, useEffect, useRef  } from "react"
-
+import { useState, useCallback, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
 function App() {
- const [length, setLength] = useState(8);
- const [numberAllowed, setNumberAllowed] = useState(false);
- const [charAllowed, setCharAllowed] = useState(false);
-const [password, setPassword] = useState ("");
+  const [length, setLength] = useState(12);
+  const [numberAllowed, setNumberAllowed] = useState(false);
+  const [charAllowed, setCharAllowed] = useState(false);
+  const [password, setPassword] = useState("");
+  const passwordRef = useRef(null);
 
-const passwordRef = useRef(null)
+  const passWordGenerator = useCallback(() => {
+    let pass = "";
+    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    if (numberAllowed) str += "0123456789";
+    if (charAllowed) str += "!@#$%^&*";
+    for (let i = 0; i < length; i++) {
+      let char = Math.floor(Math.random() * str.length);
+      pass += str.charAt(char);
+    }
+    setPassword(pass);
+  }, [length, numberAllowed, charAllowed]);
 
-const passWordGenerator= useCallback(()=>{
-  let pass = ""
-  let str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-  
-  if (numberAllowed) str += "0123456789";
-  if (charAllowed) str += "!@#$%^&*";
-  for (let i =1; i < length; i++){
-    let char = Math.floor(Math.random() * str.length + 1)
-   pass += str.charAt(char)
-  }
- setPassword(pass)
-} ,[length, numberAllowed, charAllowed, setPassword])
+  const copyPasswordToClipboard = useCallback(() => {
+    passwordRef.current?.select();
+    window.navigator.clipboard.writeText(password);
+  }, [password]);
 
-const copyPasswordToClipboard = useCallback(()=>{
-  passwordRef.current?.select();
-  window.navigator.clipboard.writeText(password)
-},[ password])
-
-useEffect(()=>{
-passWordGenerator()
-},[length, numberAllowed, charAllowed, passWordGenerator])
+  useEffect(() => {
+    passWordGenerator();
+  }, [length, numberAllowed, charAllowed, passWordGenerator]);
 
   return (
-    <>
-      <div className="w-full max-w-md mx-auto shadow-lg rounded-lg px-4 py-4 my-8 text-orange-400 bg-gray-600">
-        <h1 className="text-4xl text-center text-white mb-4">Password Generator</h1>
-        <div className="flex shadow overflow-hidden mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 px-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: -20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-lg shadow-xl rounded-2xl px-6 py-8 text-orange-400 bg-gray-700 backdrop-blur-lg"
+      >
+        <h1 className="text-4xl text-center text-white font-bold mb-6">
+          Password Generator 🔐
+        </h1>
+
+        <div className="flex items-center shadow-inner rounded-md overflow-hidden bg-white mb-6">
           <input
-          placeholder="Password"
-          type="text"
-          value={password}
-          readOnly
-          ref={passwordRef}
-          className="outline-none py-3 px-4 w-full rounded-md"
+            type="text"
+            value={password}
+            readOnly
+            ref={passwordRef}
+            className="outline-none px-4 py-3 w-full text-gray-800 text-lg font-mono"
           />
-          <button className="bg-blue-700 px-3 py-2 text-white rounded-md  hover:bg-blue-900 " onClick={copyPasswordToClipboard} >Copy</button>
-        </div>
-        <div className="flex text-sm gap-x-2">
-          <div className="flex text-sm gap-x-1">
-        <input
-        type="range"
-        min={8}
-        max={50}
-        value={length}
-        className="cursor-pointer bg-blue-500" 
-        onChange={(e)=>{setLength (e.target.value)}}
-        
-        />
-        <label>Length: {length}</label>
-        </div>
-        <div className="flex gap-x-1">
-          <input
-          type="checkbox"
-          id="numberInput"
-          defaultChecked={numberAllowed}
-          onChange={()=>{
-            setNumberAllowed ((prev)=> !prev)
-          }}
-          />
-          <label>Numbers</label>
-
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            className="bg-blue-600 hover:bg-blue-800 transition px-4 py-3 text-white font-semibold"
+            onClick={copyPasswordToClipboard}
+          >
+            Copy
+          </motion.button>
         </div>
 
-        <div className="flex gap-x-1">
-          <input
-          type="checkbox"
-          id="characterInput"
-          defaultChecked={charAllowed}
-          onChange={()=>{
-            setCharAllowed ((prev)=> !prev)
-          }}
-          />
-          <label>Characters</label>
+        <div className="flex flex-col gap-4 text-sm text-white">
+          <div className="flex items-center justify-between">
+            <label htmlFor="lengthRange" className="text-lg font-medium">
+              Length: <span className="text-orange-400">{length}</span>
+            </label>
+            <input
+              id="lengthRange"
+              type="range"
+              min={8}
+              max={50}
+              value={length}
+              className="cursor-pointer w-2/3 accent-orange-400"
+              onChange={(e) => setLength(Number(e.target.value))}
+            />
+          </div>
 
-        </div>
+          <div className="flex items-center gap-x-2">
+            <input
+              type="checkbox"
+              id="numberInput"
+              checked={numberAllowed}
+              onChange={() => setNumberAllowed((prev) => !prev)}
+              className="accent-orange-400"
+            />
+            <label htmlFor="numberInput" className="text-md">
+              Include Numbers
+            </label>
+          </div>
 
+          <div className="flex items-center gap-x-2">
+            <input
+              type="checkbox"
+              id="characterInput"
+              checked={charAllowed}
+              onChange={() => setCharAllowed((prev) => !prev)}
+              className="accent-orange-400"
+            />
+            <label htmlFor="characterInput" className="text-md">
+              Include Special Characters
+            </label>
+          </div>
         </div>
-      </div>
-    </>
+      </motion.div>
+    </div>
   );
 }
 
-export default App
+export default App;
